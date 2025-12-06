@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI STUDIO 2.0 – SunoForge & ClipForge</title>
+<style>
+:root{
+  --bg-dark:#0a0a12;
+  --bg-darker:#07070d;
+  --bg-card:#12121b;
+  --text:#e6e6f0;
+  --muted:#a9a9b8;
+  --border:#1c1c29;
+  --accent-audio:#6c5ce7; /* Violet */
+  --accent-video:#e056fd; /* Rose */
+  --ok:#2ecc71;
+  --warn:#f1c40f;
+  --bad:#e74c3c;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg-dark);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Arial,sans-serif;
+}
+.app{
+  display:grid;
+  grid-template-columns:280px 1fr;
+  min-height:100vh;
+}
+
+/* Sidebar */
+.sidebar{
+  background:var(--bg-darker);
+  border-right:1px solid var(--border);
+  padding:20px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.brand{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;
+  border-radius:10px;
+  background:linear-gradient(135deg, rgba(108,92,231,.2), rgba(224,86,253,.2));
+}
+.brand .logo{
+  width:28px;height:28px;border-radius:6px;
+  background:linear-gradient(135deg, var(--accent-audio), var(--accent-video));
+}
+.brand .title{font-weight:700;letter-spacing:.3px}
+.nav{
+  display:flex;flex-direction:column;gap:8px;
+}
+.nav button{
+  width:100%;
+  text-align:left;
+  padding:10px 12px;
+  color:var(--text);
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:8px;
+  cursor:pointer;
+}
+.nav button.active{
+  background:var(--bg-card);
+  border-color:var(--accent-audio);
+}
+.nav .group-label{
+  color:var(--muted);
+  font-size:12px;
+  margin:8px 2px 4px;
+}
+.sidebar .tools{
+  margin-top:auto;
+  display:flex;flex-direction:column;gap:8px;
+}
+
+/* Main */
+.main{
+  padding:20px;
+}
+
+/* Views */
+.view-section{
+  display:none;
+}
+.view-section.active{
+  display:block;
+}
+
+/* Cards & layout */
+.section{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:16px;
+}
+.section h3{
+  margin:0 0 12px 0;
+  font-size:16px;
+}
+.grid{
+  display:grid;
+  gap:12px;
+}
+.grid.cols-2{grid-template-columns:1fr 1fr}
+.grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.row{display:flex; gap:12px; align-items:flex-start;}
+.field{
+  display:flex;flex-direction:column;gap:6px;
+}
+.field label{font-size:13px;color:var(--muted)}
+.field input,.field select,.field textarea{
+  background:#0f0f17;
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:8px;
+  padding:10px 12px;
+  outline:none;
+}
+.field textarea{min-height:100px; resize:vertical}
+.small{font-size:12px;color:var(--muted)}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:#0f0f17;
+  color:var(--text);
+  cursor:pointer;
+}
+.btn.primary{
+  background:linear-gradient(135deg, rgba(108,92,231,.2), rgba(224,86,253,.2));
+  border-color:var(--accent-audio);
+}
+.btn.audio{border-color:var(--accent-audio)}
+.btn.video{border-color:var(--accent-video)}
+.btn.warn{border-color:var(--warn); color:#f8e287}
+.tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 8px;border-radius:999px;border:1px solid var(--border);
+  color:var(--muted);font-size:12px;
+}
+.hr{height:1px;background:var(--border);margin:12px 0}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  padding:6px 10px;border-radius:999px;
+  border:1px solid var(--border);
+  background:#0e0e16;color:var(--text);
+  font-size:12px; cursor:pointer;
+}
+.chip.audio{border-color:var(--accent-audio)}
+.chip.video{border-color:var(--accent-video)}
+
+/* Timeline */
+.timeline{
+  background:#0f0f17;border:1px solid var(--border);
+  border-radius:12px; padding:8px; overflow:auto;
+  height:220px; position:relative;
+}
+.timeline .canvas{
+  position:relative; height:100%;
+  display:flex; align-items:flex-start; gap:8px;
+}
+.scene-card{
+  min-width:160px;
+  max-width:320px;
+  background:#121223;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+  color:var(--text);
+  cursor:grab;
+}
+.scene-card.active{
+  border-color:var(--accent-video);
+  box-shadow:0 0 0 2px rgba(224,86,253,.25) inset;
+}
+.scene-header{
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+}
+.scene-body{display:flex; flex-direction:column; gap:6px}
+.scene-meta{
+  display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)
+}
+.zoom-bar{display:flex;gap:8px;align-items:center}
+
+/* Output tabs */
+.tabs{
+  display:flex; gap:8px; margin-bottom:8px;
+}
+.tab{
+  padding:8px 10px;border-radius:8px;border:1px solid var(--border);
+  background:#0f0f17; cursor:pointer; font-size:13px;
+}
+.tab.active{border-color:var(--accent-video); background:#161628}
+.output{
+  background:#0f0f17;border:1px solid var(--border);
+  border-radius:8px; padding:10px; min-height:120px; white-space:pre-wrap;
+}
+
+/* Modals */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.6);
+  display:none; align-items:center; justify-content:center; z-index:1000;
+}
+.modal{
+  width:min(900px,90vw);
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:12px; padding:16px;
+}
+.modal h3{margin-top:0}
+.modal .actions{display:flex; gap:8px; justify-content:flex-end; margin-top:12px}
+
+/* Status pill */
+.pill{display:inline-flex;gap:6px;align-items:center;padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid var(--border)}
+.pill.ok{border-color:var(--ok);color:#b9f4c9}
+.pill.warn{border-color:var(--warn);color:#f8e287}
+.pill.bad{border-color:var(--bad);color:#f9b1b1}
+
+/* Footer note */
+.footer-note{font-size:12px;color:var(--muted);margin-top:8px}
+
+@media (max-width:1000px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:sticky; top:0; z-index:10}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div class="title">AI STUDIO 2.0</div>
+    </div>
+
+    <div class="nav">
+      <div class="group-label">Navigation</div>
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="projects">Projets</button>
+      <button data-view="audio">Studio Audio (SunoForge)</button>
+      <button data-view="video">Studio Vidéo (ClipForge)</button>
+
+      <div class="hr"></div>
+      <div class="group-label">Gestion</div>
+      <button id="btn-export" class="btn">Exporter Projets</button>
+      <button id="btn-import" class="btn warn">Importer Projets</button>
+      <button id="btn-library" class="btn video">Gérer Bibliothèque</button>
+    </div>
+
+    <div class="tools">
+      <div class="tag">Thème sombre • #0a0a12</div>
+      <div class="row">
+        <span class="tag" style="border-color:var(--accent-audio)">Audio • Violet</span>
+        <span class="tag" style="border-color:var(--accent-video)">Vidéo • Rose</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="view-section active">
+      <div class="section">
+        <h3>Vue d’ensemble</h3>
+        <div class="grid cols-3">
+          <div class="section">
+            <h3>Projets récents</h3>
+            <div id="recent-projects"></div>
+          </div>
+          <div class="section">
+            <h3>Raccourcis</h3>
+            <div class="row">
+              <button class="btn audio" onclick="UI.nav('audio')">Aller à SunoForge</button>
+              <button class="btn video" onclick="UI.nav('video')">Aller à ClipForge</button>
+            </div>
+            <div class="hr"></div>
+            <div class="row">
+              <button class="btn" onclick="Data.createProject()">Nouveau projet</button>
+              <button class="btn warn" id="quick-import">Importer</button>
+            </div>
+          </div>
+          <div class="section">
+            <h3>Bibliothèque de suggestions</h3>
+            <div id="library-mini"></div>
+            <div class="footer-note">Chargée via localStorage de manière séparée.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" class="view-section">
+      <div class="section">
+        <h3>Projets</h3>
+        <div class="row">
+          <button class="btn" onclick="Data.createProject()">Nouveau projet</button>
+          <button class="btn" onclick="UI.refreshProjects()">Actualiser</button>
+        </div>
+        <div class="hr"></div>
+        <div id="project-list"></div>
+      </div>
+    </section>
+
+    <!-- AUDIO -->
+    <section id="audio" class="view-section">
+      <div class="section">
+        <h3>Configuration Audio — SunoForge</h3>
+        <div class="grid cols-2">
+          <div class="field">
+            <label>Titre</label>
+            <input id="audio-title" placeholder="Nom du morceau"/>
+          </div>
+          <div class="field">
+            <label>Nombre de tracks</label>
+            <input id="audio-tracks" type="number" min="1" max="20" value="3"/>
+          </div>
+          <div class="field">
+            <label>Genre</label>
+            <input id="audio-genre" placeholder="ex. Synthwave, Drill, Orchestral"/>
+            <div id="chips-genre" class="chips"></div>
+          </div>
+          <div class="field">
+            <label>Thème / Ambiance</label>
+            <input id="audio-theme" placeholder="ex. nocturne cyberpunk, chill urbain"/>
+            <div id="chips-theme" class="chips"></div>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div class="row">
+          <button class="btn primary audio" onclick="AudioEngine.generate()">Générer les prompts</button>
+          <button class="btn" onclick="UI.attachAudioToVideo()">Injecter Genre/Thème dans Master Prompt Vidéo</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Résultats — Prompts et Linter</h3>
+        <div id="audio-results"></div>
+      </div>
+    </section>
+
+    <!-- VIDEO -->
+    <section id="video" class="view-section">
+      <div class="section">
+        <h3>Master Prompt Vidéo — ClipForge</h3>
+        <div class="grid cols-2">
+          <div class="field">
+            <label>Personnage principal</label>
+            <input id="video-master-character" placeholder="ex. cyborg danseur, samouraï néon, dét. 80s"/>
+            <div id="chips-master" class="chips"></div>
+          </div>
+          <div class="field">
+            <label>
+              <input type="checkbox" id="video-face-consistency"/> Force Consistent Face
+            </label>
+            <span class="small">Maintenir le visage identique sur la séquence.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Timeline des scènes</h3>
+        <div class="row">
+          <button class="btn video" onclick="VideoEngine.addScene()">Ajouter une scène</button>
+          <button class="btn" onclick="VideoEngine.clearScenes()">Vider timeline</button>
+          <div class="zoom-bar">
+            <span class="tag">Zoom</span>
+            <input type="range" id="timeline-zoom" min="0.5" max="2" step="0.1" value="1" />
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div class="timeline">
+          <div id="timeline-canvas" class="canvas"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Scène sélectionnée — Sortie</h3>
+        <div class="tabs">
+          <div class="tab active" data-tab="single" onclick="UI.switchOutputTab('single')">Scène unique</div>
+          <div class="tab" data-tab="batch" onclick="UI.switchOutputTab('batch')">Séquence complète</div>
+        </div>
+        <div id="output-single" class="output"></div>
+        <div id="output-batch" class="output" style="display:none"></div>
+      </div>
+    </section>
+
+    <!-- IMPORT MODAL -->
+    <div id="import-modal" class="modal-backdrop">
+      <div class="modal">
+        <h3>Importer des projets (JSON)</h3>
+        <div class="field">
+          <label>Coller ci-dessous votre JSON de projets</label>
+          <textarea id="import-text" placeholder='[ { "id": "...", "name": "...", ... } ]'></textarea>
+        </div>
+        <div class="actions">
+          <button class="btn" onclick="UI.closeImport()">Fermer</button>
+          <button class="btn primary" onclick="Data.importProjects()">Importer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIBRARY MODAL -->
+    <div id="library-modal" class="modal-backdrop">
+      <div class="modal">
+        <h3>Gestion de la bibliothèque de suggestions (JSON séparé)</h3>
+        <div class="field">
+          <label>Éditer la structure JSON (Genres, Thèmes, Caméras, Actions, Personnage)</label>
+          <textarea id="library-text" placeholder='{"genres":["Synthwave","Drill"],"themes":["Nocturne"],"cameras":["Travelling"],"actions":["Danse"],"master":["Cyborg"]}'></textarea>
+        </div>
+        <div class="row">
+          <button class="btn" onclick="Data.loadLibrary()">Recharger depuis localStorage</button>
+          <button class="btn" onclick="Data.exportLibrary()">Exporter bibliothèque</button>
+          <button class="btn primary" onclick="Data.saveLibrary()">Sauvegarder bibliothèque</button>
+        </div>
+        <div class="actions">
+          <button class="btn" onclick="UI.closeLibrary()">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ===========================================
+   KEYS & DEFAULTS
+=========================================== */
+const LS_PROJECTS_KEY = 'AI_STUDIO_PROJECTS_V2';
+const LS_LIBRARY_KEY  = 'AI_STUDIO_LIBRARY_V2';
+
+const DEFAULT_LIBRARY_JSON = {
+  genres: ["Synthwave","Drill","Orchestral","Lo-fi","Afrobeats","Trap","Hyperpop","House","RnB","Jazzhop"],
+  themes: ["Nocturne cyberpunk","Néon pluie","Chill urbain","Rétro VHS","Soleil couchant","Studio minimal","Glitch dream"],
+  cameras: ["Travelling latéral","Plan séquence","Zoom progressif","Panoramique doux","Handheld énergique","Top shot"],
+  actions: ["Danse freestyle","Marche déterminée","Pose caméra","Saut stylisé","Jeu de mains","Course lente"],
+  master: ["Cyborg danseur","Samouraï néon","Skateur rétro","Espion 80s","Idol futuriste","B-boy chromé"]
+};
+
+/* ===========================================
+   DATA MODEL
+=========================================== */
+const Data = {
+  projects: [],
+  library: {},
+
+  init(){
+    // Load projects
+    try{
+      const raw = localStorage.getItem(LS_PROJECTS_KEY);
+      Data.projects = raw ? JSON.parse(raw) : [];
+    }catch(e){
+      Data.projects = [];
+    }
+    // Load library (separate)
+    try{
+      const rawL = localStorage.getItem(LS_LIBRARY_KEY);
+      Data.library = rawL ? JSON.parse(rawL) : DEFAULT_LIBRARY_JSON;
+    }catch(e){
+      Data.library = DEFAULT_LIBRARY_JSON;
+    }
+    UI.refreshDashboard();
+    UI.refreshProjects();
+    SuggestionEngine.renderAll();
+    VideoEngine.renderTimeline();
+  },
+
+  save(){
+    localStorage.setItem(LS_PROJECTS_KEY, JSON.stringify(Data.projects));
+    UI.refreshProjects();
+    UI.refreshDashboard();
+  },
+
+  /* Projects CRUD */
+  createProject(){
+    const id = 'p_' + Math.random().toString(36).slice(2,9);
+    const project = {
+      id,
+      name: 'Projet ' + (Data.projects.length+1),
+      audio: {
+        title:'',
+        genre:'',
+        theme:'',
+        tracks:3,
+        results:[]
+      },
+      video: {
+        masterCharacter:'',
+        faceConsistency:false,
+        scenes:[]
+      },
+      createdAt: Date.now()
+    };
+    Data.projects.unshift(project);
+    Data.save();
+    UI.nav('projects');
+  },
+
+  deleteProject(id){
+    Data.projects = Data.projects.filter(p=>p.id!==id);
+    Data.save();
+  },
+
+  getProject(id){
+    return Data.projects.find(p=>p.id===id);
+  },
+
+  renameProject(id, name){
+    const p = Data.getProject(id);
+    if(!p) return;
+    p.name = name || p.name;
+    Data.save();
+  },
+
+  /* Import/Export Projects */
+  exportProjects(){
+    const blob = JSON.stringify(Data.projects, null, 2);
+    UI.downloadText('ai-studio-projects.json', blob);
+  },
+  importProjects(){
+    const ta = document.getElementById('import-text');
+    if(!ta.value.trim()){ alert('Collez le JSON des projets.'); return; }
+    try{
+      const arr = JSON.parse(ta.value);
+      if(!Array.isArray(arr)) throw new Error('Format attendu: Array');
+      Data.projects = arr;
+      Data.save();
+      UI.closeImport();
+      UI.nav('projects');
+    }catch(e){
+      alert('JSON invalide: ' + e.message);
+    }
+  },
+
+  /* Library JSON (separate) */
+  saveLibrary(){
+    const ta = document.getElementById('library-text');
+    try{
+      const obj = JSON.parse(ta.value);
+      Data.library = obj;
+      localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(obj));
+      SuggestionEngine.renderAll();
+      alert('Bibliothèque sauvegardée.');
+    }catch(e){
+      alert('JSON invalide: ' + e.message);
+    }
+  },
+  exportLibrary(){
+    const blob = JSON.stringify(Data.library, null, 2);
+    UI.downloadText('ai-studio-library.json', blob);
+  },
+  loadLibrary(){
+    try{
+      const raw = localStorage.getItem(LS_LIBRARY_KEY);
+      const obj = raw ? JSON.parse(raw) : DEFAULT_LIBRARY_JSON;
+      Data.library = obj;
+      document.getElementById('library-text').value = JSON.stringify(obj, null, 2);
+      SuggestionEngine.renderAll();
+      alert('Bibliothèque rechargée.');
+    }catch(e){
+      alert('Erreur de chargement bibliothèque.');
+    }
+  }
+};
+
+/* ===========================================
+   UI & NAV
+=========================================== */
+const UI = {
+  currentView: 'dashboard',
+  outputTab: 'single',
+
+  nav(view){
+    // toggle buttons
+    document.querySelectorAll('.nav button[data-view]').forEach(b=>{
+      b.classList.toggle('active', b.dataset.view===view);
+    });
+    // toggle views
+    document.querySelectorAll('.view-section').forEach(s=>{
+      s.classList.toggle('active', s.id===view);
+    });
+    UI.currentView = view;
+    // minor refreshes
+    if(view==='audio'){ SuggestionEngine.renderAudioChips(); }
+    if(view==='video'){ SuggestionEngine.renderVideoChips(); UI.refreshVideoOutputs(); }
+    if(view==='projects'){ UI.refreshProjects(); }
+    if(view==='dashboard'){ UI.refreshDashboard(); }
+  },
+
+  refreshDashboard(){
+    const wrap = document.getElementById('recent-projects');
+    wrap.innerHTML = '';
+    const top = Data.projects.slice(0,3);
+    if(top.length===0){
+      wrap.innerHTML = '<div class="small">Aucun projet pour le moment.</div>';
+      return;
+    }
+    top.forEach(p=>{
+      const div = document.createElement('div');
+      div.className='row';
+      const pill = document.createElement('span');
+      pill.className='pill';
+      pill.textContent = new Date(p.createdAt).toLocaleString();
+      const btn = document.createElement('button');
+      btn.className='btn';
+      btn.textContent = p.name;
+      btn.onclick = ()=>UI.nav('projects');
+      div.appendChild(btn);
+      div.appendChild(pill);
+      wrap.appendChild(div);
+    });
+
+    const mini = document.getElementById('library-mini');
+    mini.innerHTML = '';
+    const cats = Object.keys(Data.library);
+    cats.forEach(k=>{
+      const line = document.createElement('div');
+      line.className='row';
+      const tag = document.createElement('span');
+      tag.className='tag';
+      tag.textContent = k;
+      const values = document.createElement('div');
+      values.className='chips';
+      (Data.library[k]||[]).slice(0,5).forEach(v=>{
+        const c = document.createElement('div');
+        c.className='chip';
+        c.textContent = v;
+        values.appendChild(c);
+      });
+      line.appendChild(tag);
+      line.appendChild(values);
+      mini.appendChild(line);
+    });
+  },
+
+  refreshProjects(){
+    const list = document.getElementById('project-list');
+    list.innerHTML = '';
+    if(Data.projects.length===0){
+      list.innerHTML = '<div class="small">Aucun projet. Créez-en un nouveau ou importez un JSON.</div>';
+      return;
+    }
+    Data.projects.forEach(p=>{
+      const card = document.createElement('div');
+      card.className='section';
+      const h = document.createElement('div');
+      h.className='row';
+      const nameInput = document.createElement('input');
+      nameInput.value = p.name;
+      nameInput.className='btn';
+      nameInput.onchange = ()=>Data.renameProject(p.id, nameInput.value);
+      const openAudio = document.createElement('button');
+      openAudio.className='btn audio';
+      openAudio.textContent='Ouvrir Audio';
+      openAudio.onclick = ()=>UI.nav('audio');
+      const openVideo = document.createElement('button');
+      openVideo.className='btn video';
+      openVideo.textContent='Ouvrir Vidéo';
+      openVideo.onclick = ()=>UI.nav('video');
+      const del = document.createElement('button');
+      del.className='btn warn';
+      del.textContent='Supprimer';
+      del.onclick = ()=>{ if(confirm('Supprimer ce projet ?')) Data.deleteProject(p.id); };
+      h.appendChild(nameInput);
+      h.appendChild(openAudio);
+      h.appendChild(openVideo);
+      h.appendChild(del);
+      card.appendChild(h);
+
+      const meta = document.createElement('div');
+      meta.className='row';
+      const a = document.createElement('span'); a.className='pill'; a.textContent = `Tracks: ${p.audio.tracks}`;
+      const v = document.createElement('span'); v.className='pill'; v.textContent = `Scènes: ${p.video.scenes.length}`;
+      meta.appendChild(a); meta.appendChild(v);
+      card.appendChild(meta);
+
+      list.appendChild(card);
+    });
+  },
+
+  /* Audio results & link to video master */
+  renderAudioResults(){
+    const wrap = document.getElementById('audio-results');
+    wrap.innerHTML = '';
+    const title = document.getElementById('audio-title').value.trim();
+    const genre = document.getElementById('audio-genre').value.trim();
+    const theme = document.getElementById('audio-theme').value.trim();
+    const tracks = parseInt(document.getElementById('audio-tracks').value || '1',10);
+
+    const tempProject = { audio:{title,genre,theme,tracks} };
+    const results = AudioEngine.generatePrompts(tempProject);
+
+    results.forEach((r,i)=>{
+      const card = document.createElement('div');
+      card.className='section';
+      const header = document.createElement('div');
+      header.className='row';
+      const h = document.createElement('h4'); h.textContent = `Track ${i+1}`;
+      const quality = AudioEngine.linter(r.style);
+      const pill = document.createElement('span');
+      pill.className='pill ' + (quality.score>=0.7?'ok':quality.score>=0.4?'warn':'bad');
+      pill.textContent = `Qualité: ${(quality.score*100|0)}%`;
+      header.appendChild(h); header.appendChild(pill);
+      const styleField = document.createElement('div');
+      styleField.className='field';
+      const sl = document.createElement('label'); sl.textContent='Style Prompt';
+      const si = document.createElement('textarea'); si.value = r.style;
+      styleField.appendChild(sl); styleField.appendChild(si);
+
+      const lyrField = document.createElement('div');
+      lyrField.className='field';
+      const ll = document.createElement('label'); ll.textContent='Lyrics Prompt';
+      const li = document.createElement('textarea'); li.value = r.lyrics;
+      lyrField.appendChild(ll); lyrField.appendChild(li);
+
+      card.appendChild(header);
+      card.appendChild(styleField);
+      card.appendChild(lyrField);
+      wrap.appendChild(card);
+    });
+  },
+
+  attachAudioToVideo(){
+    const genre = document.getElementById('audio-genre').value.trim();
+    const theme = document.getElementById('audio-theme').value.trim();
+    const master = document.getElementById('video-master-character');
+    const base = master.value.trim();
+    master.value = [base, genre, theme].filter(Boolean).join(' • ');
+    UI.nav('video');
+  },
+
+  /* Output tabs (video) */
+  switchOutputTab(tab){
+    UI.outputTab = tab;
+    document.querySelectorAll('.tab').forEach(t=>{
+      t.classList.toggle('active', t.dataset.tab===tab);
+    });
+    document.getElementById('output-single').style.display = tab==='single'?'block':'none';
+    document.getElementById('output-batch').style.display  = tab==='batch'?'block':'none';
+    UI.refreshVideoOutputs();
+  },
+
+  refreshVideoOutputs(){
+    const single = document.getElementById('output-single');
+    const batch = document.getElementById('output-batch');
+    const s = VideoEngine.getSelectedScene();
+    if(s){
+      single.textContent = VideoEngine.formatScenePrompt(s);
+    }else{
+      single.textContent = 'Sélectionnez une scène pour voir le prompt formaté.';
+    }
+    batch.textContent = VideoEngine.generateBatchPrompt();
+  },
+
+  downloadText(filename, text){
+    const blob = new Blob([text], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  },
+
+  /* Modals */
+  openImport(){ document.getElementById('import-modal').style.display='flex'; },
+  closeImport(){ document.getElementById('import-modal').style.display='none'; },
+  openLibrary(){
+    const ta = document.getElementById('library-text');
+    ta.value = JSON.stringify(Data.library, null, 2);
+    document.getElementById('library-modal').style.display='flex';
+  },
+  closeLibrary(){ document.getElementById('library-modal').style.display='none'; }
+};
+
+/* ===========================================
+   SUGGESTION ENGINE (chips)
+=========================================== */
+const SuggestionEngine = {
+  renderAll(){
+    this.renderAudioChips();
+    this.renderVideoChips();
+  },
+  renderAudioChips(){
+    this.renderChipGroup('chips-genre', Data.library.genres || [], 'audio-genre');
+    this.renderChipGroup('chips-theme', Data.library.themes || [], 'audio-theme');
+  },
+  renderVideoChips(){
+    this.renderChipGroup('chips-master', Data.library.master || [], 'video-master-character');
+  },
+  renderChipGroup(containerId, list, targetInputId){
+    const wrap = document.getElementById(containerId);
+    if(!wrap) return;
+    wrap.innerHTML = '';
+    list.forEach(v=>{
+      const c = document.createElement('div');
+      c.className='chip';
+      c.textContent = v;
+      c.onclick = ()=>{
+        const input = document.getElementById(targetInputId);
+        const cur = input.value.trim();
+        input.value = cur ? (cur + ' • ' + v) : v;
+      };
+      wrap.appendChild(c);
+    });
+  }
+};
+
+/* ===========================================
+   AUDIO ENGINE (SunoForge)
+=========================================== */
+const AudioEngine = {
+  powerfulKeywords: [
+    'cinematic','anthemic','punchy','lush','gritty','glossy','warm','crisp',
+    'epic','dreamy','dark','neon','retro','modern','layered','dynamic','textured',
+    'complex rhythms','polyrhythmic','pulsing bass','soaring lead','haunting vocal'
+  ],
+
+  generate(){
+    UI.renderAudioResults();
+  },
+
+  generatePrompts(project){
+    const title = project.audio.title || 'Untitled';
+    const genre = project.audio.genre || 'Unknown genre';
+    const theme = project.audio.theme || '';
+    const tracks = project.audio.tracks || 1;
+    const arr = [];
+    for(let i=0;i<tracks;i++){
+      const style = `${genre} • ${theme} • ${this.pickStyleTags()}`;
+      const lyrics = this.generateLyrics(title, theme);
+      arr.push({ style, lyrics });
+    }
+    return arr;
+  },
+
+  pickStyleTags(){
+    const tags = [
+      'high energy','moody atmospheres','analog texture','digital sheen','club-ready',
+      'sidechain pump','syncopated groove','reverb-drenched','close-miked','wide stereo image'
+    ];
+    const pick = shuffle([...this.powerfulKeywords]).slice(0,3).join(', ');
+    const tagPick = shuffle(tags).slice(0,2).join(', ');
+    return `${pick}, ${tagPick}`;
+  },
+
+  generateLyrics(title, theme){
+    const t = theme || 'ambiance';
+    return `Verse: imagery tied to ${t}, intimate lines.\nHook: memorable motif repeating ${title}.\nBridge: contrast, rising tension then release.`;
+  },
+
+  linter(stylePrompt){
+    const s = stylePrompt.toLowerCase();
+    let hits = 0;
+    this.powerfulKeywords.forEach(k=>{
+      if(s.includes(k.toLowerCase())) hits++;
+    });
+    const density = hits / Math.max(3, this.powerfulKeywords.length);
+    const score = Math.min(1, 0.4 + density*1.2);
+    return { score, hits };
+  }
+};
+
+/* ===========================================
+   VIDEO ENGINE (ClipForge)
+=========================================== */
+const VideoEngine = {
+  scenes: [],
+  selectedId: null,
+  zoom: 1,
+
+  addScene(){
+    const id = 's_' + Math.random().toString(36).slice(2,9);
+    const scene = {
+      id, name: 'Scène ' + (this.scenes.length+1),
+      duration: 6, /* in seconds */
+      action: 'Danse freestyle',
+      camera: 'Travelling latéral',
+      notes: ''
+    };
+    this.scenes.push(scene);
+    this.selectedId = id;
+    this.renderTimeline();
+    UI.refreshVideoOutputs();
+  },
+
+  clearScenes(){
+    if(!confirm('Vider toutes les scènes ?')) return;
+    this.scenes = [];
+    this.selectedId = null;
+    this.renderTimeline();
+    UI.refreshVideoOutputs();
+  },
+
+  getSelectedScene(){
+    return this.scenes.find(s=>s.id===this.selectedId) || null;
+  },
+
+  setZoom(z){
+    this.zoom = z;
+    const canvas = document.getElementById('timeline-canvas');
+    canvas.style.transform = `scale(${z})`;
+    canvas.style.transformOrigin = '0 0';
+  },
+
+  selectScene(id){
+    this.selectedId = id;
+    this.renderTimeline();
+    UI.refreshVideoOutputs();
+  },
+
+  updateScene(id, patch){
+    const s = this.scenes.find(x=>x.id===id);
+    if(!s) return;
+    Object.assign(s, patch);
+    UI.refreshVideoOutputs();
+  },
+
+  formatScenePrompt(scene){
+    const master = document.getElementById('video-master-character').value.trim();
+    const face = document.getElementById('video-face-consistency').checked;
+    const timeLabel = this.timecodeForScene(scene);
+    const lines = [];
+    lines.push(`[${timeLabel}] ${scene.name}`);
+    lines.push(`Master: ${master}${face?' • ConsistentFace:ON':''}`);
+    lines.push(`Action: ${scene.action}`);
+    lines.push(`Camera: ${scene.camera}`);
+    if(scene.notes) lines.push(`Notes: ${scene.notes}`);
+    return lines.join('\n');
+  },
+
+  generateBatchPrompt(){
+    if(this.scenes.length===0) return 'Aucune scène dans la timeline.';
+    const master = document.getElementById('video-master-character').value.trim();
+    const face = document.getElementById('video-face-consistency').checked;
+    let t=0;
+    const lines = [];
+    lines.push(`MASTER: ${master}${face?' • ConsistentFace:ON':''}`);
+    lines.push(`SEQUENCE:`);
+    this.scenes.forEach((s,idx)=>{
+      const start = t;
+      const end   = t + (s.duration||0);
+      const tc = `${formatTC(start)}-${formatTC(end)}`;
+      lines.push(`- [${tc}] ${s.name}`);
+      lines.push(`  Action: ${s.action}`);
+      lines.push(`  Camera: ${s.camera}`);
+      if(s.notes) lines.push(`  Notes: ${s.notes}`);
+      t = end;
+    });
+    return lines.join('\n');
+  },
+
+  timecodeForScene(scene){
+    // Compute cumulative start/end based on array order
+    let start=0;
+    for(const s of this.scenes){
+      if(s.id===scene.id) break;
+      start += s.duration||0;
+    }
+    const end = start + (scene.duration||0);
+    return `${formatTC(start)}-${formatTC(end)}`;
+  },
+
+  renderTimeline(){
+    const canvas = document.getElementById('timeline-canvas');
+    canvas.innerHTML = '';
+    this.scenes.forEach(s=>{
+      const card = document.createElement('div');
+      card.className='scene-card' + (s.id===this.selectedId?' active':'');
+      card.setAttribute('draggable', true);
+
+      // drag
+      card.addEventListener('dragstart', (e)=>{
+        e.dataTransfer.setData('text/plain', s.id);
+      });
+      card.addEventListener('dragover', (e)=>{ e.preventDefault(); });
+      card.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        const draggedId = e.dataTransfer.getData('text/plain');
+        const fromIdx = VideoEngine.scenes.findIndex(x=>x.id===draggedId);
+        const toIdx   = VideoEngine.scenes.findIndex(x=>x.id===s.id);
+        if(fromIdx<0 || toIdx<0 || fromIdx===toIdx) return;
+        const item = VideoEngine.scenes.splice(fromIdx,1)[0];
+        VideoEngine.scenes.splice(toIdx,0,item);
+        VideoEngine.renderTimeline();
+        UI.refreshVideoOutputs();
+      });
+
+      card.onclick = ()=>VideoEngine.selectScene(s.id);
+
+      const header = document.createElement('div');
+      header.className='scene-header';
+      const name = document.createElement('input');
+      name.className='btn';
+      name.value = s.name;
+      name.onchange = ()=>VideoEngine.updateScene(s.id,{name:name.value});
+      const meta = document.createElement('div');
+      meta.className='scene-meta';
+      meta.textContent = VideoEngine.timecodeForScene(s);
+      header.appendChild(name);
+      header.appendChild(meta);
+
+      const body = document.createElement('div');
+      body.className='scene-body';
+
+      const row1 = document.createElement('div'); row1.className='row';
+      const dur = document.createElement('div'); dur.className='field';
+      const ld = document.createElement('label'); ld.textContent='Durée (s)';
+      const idur = document.createElement('input'); idur.type='number'; idur.min='1'; idur.value = s.duration;
+      idur.onchange = ()=>VideoEngine.updateScene(s.id,{duration: parseInt(idur.value||'1',10)});
+      dur.appendChild(ld); dur.appendChild(idur);
+
+      const act = document.createElement('div'); act.className='field';
+      const la = document.createElement('label'); la.textContent='Action';
+      const ia = document.createElement('input'); ia.value = s.action;
+      ia.onchange = ()=>VideoEngine.updateScene(s.id,{action: ia.value});
+      act.appendChild(la); act.appendChild(ia);
+
+      const cam = document.createElement('div'); cam.className='field';
+      const lc = document.createElement('label'); lc.textContent='Mouvement caméra';
+      const ic = document.createElement('input'); ic.value = s.camera;
+      ic.onchange = ()=>VideoEngine.updateScene(s.id,{camera: ic.value});
+      cam.appendChild(lc); cam.appendChild(ic);
+
+      const notes = document.createElement('div'); notes.className='field';
+      const ln = document.createElement('label'); ln.textContent='Notes';
+      const inotes = document.createElement('textarea'); inotes.value = s.notes || '';
+      inotes.onchange = ()=>VideoEngine.updateScene(s.id,{notes: inotes.value});
+      notes.appendChild(ln); notes.appendChild(inotes);
+
+      row1.appendChild(dur);
+      row1.appendChild(act);
+      row1.appendChild(cam);
+
+      body.appendChild(row1);
+      body.appendChild(notes);
+
+      card.appendChild(header);
+      card.appendChild(body);
+
+      canvas.appendChild(card);
+    });
+  }
+};
+
+/* ===========================================
+   HELPERS
+=========================================== */
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function formatTC(seconds){
+  const s = Math.max(0, Math.floor(seconds));
+  const mm = String(Math.floor(s/60)).padStart(2,'0');
+  const ss = String(s%60).padStart(2,'0');
+  return `00:${mm}:${ss}`;
+}
+
+/* ===========================================
+   WIRING EVENTS
+=========================================== */
+window.addEventListener('DOMContentLoaded', ()=>{
+  Data.init();
+
+  // Sidebar nav
+  document.querySelectorAll('.nav button[data-view]').forEach(b=>{
+    b.addEventListener('click', ()=>UI.nav(b.dataset.view));
+  });
+
+  // Export/Import/Library
+  document.getElementById('btn-export').onclick = ()=>Data.exportProjects();
+  document.getElementById('btn-import').onclick = ()=>UI.openImport();
+  document.getElementById('btn-library').onclick = ()=>UI.openLibrary();
+  document.getElementById('quick-import').onclick = ()=>UI.openImport();
+
+  // Audio form live updates
+  ['audio-title','audio-genre','audio-theme','audio-tracks'].forEach(id=>{
+    document.getElementById(id).addEventListener('change', ()=>UI.renderAudioResults());
+  });
+
+  // Timeline zoom
+  document.getElementById('timeline-zoom').addEventListener('input', (e)=>{
+    VideoEngine.setZoom(parseFloat(e.target.value));
+  });
+
+  // Pre-render audio
+  UI.renderAudioResults();
+});
+</script>
+</body>
+</html>
